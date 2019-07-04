@@ -15,7 +15,8 @@ def dance_jig(sender, message, **args):
         file_list.append(attachment.get_filename())
 
     #deal with name
-    path_list = file_rename(instance)
+    #path_list = file_rename(instance)
+    path_list = file_classify(instance)
 
     for i in range(0, len(path_list[0])):
         #os.system("python D:\\mailbox\\repo_pledge.py %s" % path_list[0][i])
@@ -26,7 +27,21 @@ def dance_jig(sender, message, **args):
         print("bond_trade_summary done" + path_list[1][i])
 
 
+def file_classify(instance):
+    after_path_list = [[], []]
+    for attachment in instance:
+        # print(attachment.get_filename())
+        full_path = settings.MEDIA_ROOT + '\\' + str(attachment.document).replace('/', '\\')
+        if os.path.exists(full_path):
+            if re.match('.*质押式回购市场交易情况总结日报.*', attachment.get_filename()) != None:
+                after_path_list[0].append(full_path)
+            elif re.match('.*现券市场交易情况总结日报.*', attachment.get_filename()) != None:
+                after_path_list[1].append(full_path)
+    print(after_path_list)
+    return after_path_list
 
+
+'''
 def file_rename(instance):
     #BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -47,3 +62,4 @@ def file_rename(instance):
             after_path_list[1].append(after_path)
     print(after_path_list)
     return after_path_list
+'''
