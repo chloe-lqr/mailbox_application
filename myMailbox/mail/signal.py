@@ -1,9 +1,10 @@
 from django_mailbox.signals import message_received
 from django.dispatch import receiver
-import os
 from django_mailbox.models import MessageAttachment
 import re
 from myMailbox import settings
+from mail.signals import attachment_deal
+import os
 
 @receiver(message_received)
 def dance_jig(sender, message, **args):
@@ -14,23 +15,13 @@ def dance_jig(sender, message, **args):
     for attachment in instance:
         file_list.append(attachment.get_filename())
 
-    #deal with name
-    #path_list = file_rename(instance)
     path_list = file_classify(instance)
-
-    for i in range(0, len(path_list[0])):
-        #os.system("python D:\\mailbox\\repo_pledge.py %s" % path_list[0][i])
-        print("repo_pledge done" + path_list[0][i])
-
-    for i in range(0, len(path_list[1])):
-        #os.system("python D:\\mailbox\\bond_trade_summary.py %s" % path_list[1][i])
-        print("bond_trade_summary done" + path_list[1][i])
+    attachment_deal.send(sender = sender, path_list = path_list)
 
 
 def file_classify(instance):
     after_path_list = [[], []]
     for attachment in instance:
-        # print(attachment.get_filename())
         full_path = settings.MEDIA_ROOT + '\\' + str(attachment.document).replace('/', '\\')
         if os.path.exists(full_path):
             if re.match('.*质押式回购市场交易情况总结日报.*', attachment.get_filename()) != None:
@@ -39,27 +30,3 @@ def file_classify(instance):
                 after_path_list[1].append(full_path)
     print(after_path_list)
     return after_path_list
-
-
-'''
-def file_rename(instance):
-    #BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-    after_path_list = [[],[]]
-    for attachment in instance:
-        # print(attachment.get_filename())
-        full_path = settings.MEDIA_ROOT + '\\' + str(attachment.document).replace('/', '\\')
-        path_list = full_path.split('\\')
-        path_list.pop(-1)
-        path = '\\'.join(path_list)
-        print(path)
-        after_path = path + '\\' + str(attachment.id) + '+' + attachment.get_filename()
-        if os.path.exists(full_path):
-            os.rename(full_path, after_path)
-        if re.match('.*质押式回购市场交易情况总结日报.*', attachment.get_filename()) != None:
-            after_path_list[0].append(after_path)
-        elif re.match('.*现券市场交易情况总结日报.*', attachment.get_filename()) != None:
-            after_path_list[1].append(after_path)
-    print(after_path_list)
-    return after_path_list
-'''
